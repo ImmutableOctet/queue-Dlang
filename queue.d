@@ -118,10 +118,14 @@ class Queue(T)
 		// This reverses the contents of this container.
 		void reverseContents()
 		{
-			// Iterate through every element, swapping it with the inverse element.
-			for (auto i = 0; i < _data.length; i++)
+			// Local variable(s):
+			const auto low = this.low;
+			const auto finalIndex = (this.high-1);
+
+			// Iterate through every element, swapping it with the inverse element:
+			for (size_t i = finalIndex; i > low; i -= 2)
 			{
-				auto inversePosition = (_data.length-i);
+				auto inversePosition = (finalIndex-(i-low));
 				auto current = _data[i];
 
 				_data[i] = _data[inversePosition];
@@ -141,12 +145,16 @@ class Queue(T)
 		*/
 		void sort(bool function(in T, in T) sorter)
 		{
-			if (_data.length < 2)
+			const auto low = this.low;
+			const auto high = this.high;
+
+			//if (length < 2)
+			if ((high-low) < 2)
 			{
 				return;
 			}
 			
-			for (auto i = 0; i < _data.length-1; i++)
+			for (size_t i = low; i < high; i++)
 			{
 				if (sorter(_data[i], _data[i+1]))
 				{

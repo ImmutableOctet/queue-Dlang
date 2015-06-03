@@ -8,7 +8,7 @@ import std.conv;
 // Functions:
 int main(string[] argv)
 {
-	const size_t entries = 9; // 128;
+	const size_t entries = 15; // 128;
 
     auto q = new Queue!int(entries);
 
@@ -29,11 +29,12 @@ int main(string[] argv)
 		}
 	}
 
-	const int[] area = q.area;
+	q.reverseContents();
 
+	const int[] area = q.area;
 	int[] contents = q.toArray();
 
-	writeln("Contents:\n");
+	writeln("Contents (Reversed):\n");
 
 	//foreach (int item; contents)
 	//while(!q.empty())
