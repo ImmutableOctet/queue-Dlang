@@ -5,10 +5,13 @@
 module queue;
 
 // Imports:
+
+// Standard library:
+//import std.container;
 private import std.algorithm;
 
-// Classes:
-class Queue(T)
+// Structures:
+struct Queue(T)
 {
 	public:
 		// Functions:
@@ -61,12 +64,12 @@ class Queue(T)
 			this.reuseIndices = reuse;
 		}
 
-		this(const Queue queue)
+		this(in Queue queue)
 		{
 			this(queue, queue.ignoreInfo, queue.reuseIndices);
 		}
 
-		this(const Queue queue, const bool ignore=false, const bool reuse=true)
+		this(in Queue queue, const bool ignore=false, const bool reuse=true)
 		{
 			this(queue._data.dup(), queue.initSize, ignore, reuse);
 
@@ -99,16 +102,18 @@ class Queue(T)
 		}
 
 		// Methods:
-		Queue clone() const
+
+		// Performs a deep-copy of this queue.
+		Queue save() const
 		{
-			return new Queue(this);
+			return Queue(this);
 		}
 		
 		// Generates a new 'Queue' with reverse contents.
 		// To reverse this queue, call 'reverseContents'.
 		Queue reverse() const
 		{
-			auto q = new Queue(this);
+			auto q = Queue(this);
 
 			q.reverseContents();
 
@@ -255,7 +260,10 @@ class Queue(T)
 			return value;
 		}
 
-		// Properties:
+		// Used for standard 'foreach' compliance.
+		alias popfront = pop;
+
+		// Properties (Public):
 		
 		// The current "area" of the internal array.
 		// This only slices the internal array,
@@ -272,14 +280,14 @@ class Queue(T)
 			return _data[low..high];
 		}
 
-		@property size_t high() const
+		@property T front() const
 		{
-			return max(inPosition, outPosition);
+			return _data[outPosition];
 		}
 
-		@property size_t low() const
+		@property T back() const
 		{
-			return min(inPosition, outPosition);
+			return _data[inPosition-1];
 		}
 
 		@property bool empty() const
@@ -305,6 +313,17 @@ class Queue(T)
 		// If enabled, previously utilized indices will be reused.
 		// Causes occasional copy operations; use at your own risk.
 		bool reuseIndices;
+	protected:
+		// Properties (Protected):
+		@property size_t high() const
+		{
+			return max(inPosition, outPosition);
+		}
+
+		@property size_t low() const
+		{
+			return min(inPosition, outPosition);
+		}
 	private:
 		// Fields (Private):
 		T[] _data;

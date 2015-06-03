@@ -8,9 +8,9 @@ import std.conv;
 // Functions:
 int main(string[] argv)
 {
-	const size_t entries = 15; // 128;
+	const size_t entries = 32; // 128;
 
-    auto q = new Queue!int(entries);
+    auto q = Queue!int(entries);
 
 	size_t removedEntries = 0;
 
@@ -20,8 +20,7 @@ int main(string[] argv)
 	{
 		q.push(i);
 
-		// Remove an entry for each even number pushed:
-		if ((i % 2) == 0)
+		if ( i < 8 || (i % 2) == 0)
 		{
 			q.pop();
 
@@ -36,12 +35,22 @@ int main(string[] argv)
 
 	writeln("Contents (Reversed):\n");
 
+	writeln("First: " ~ to!string(q.front()));
+	writeln("Last: " ~ to!string(q.back()));
+
 	//foreach (int item; contents)
 	//while(!q.empty())
 	for (auto i = 0; i < area.length; i++)
 	{
 		writeln(to!string(contents[i]) ~ ", " ~ to!string(area[i]) ~ ", " ~ to!string(q.pop()));
 	}
+
+	/*
+	foreach (int item; contents)
+	{
+		writeln(item);
+	}
+	*/
 
 	writeln();
 	writeln(to!string(removedEntries) ~ " entries removed.");

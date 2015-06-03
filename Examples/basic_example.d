@@ -7,7 +7,7 @@ import std.stdio;
 // Functions:
 int main(string[] argv)
 {
-	auto x = new Queue!int(64); // (1024*1024*128);
+	auto x = Queue!int(64); // (1024*1024*128);
 
 	writeln("Running example...");
 
