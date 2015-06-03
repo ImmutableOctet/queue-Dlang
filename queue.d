@@ -58,12 +58,12 @@ class Queue(T)
 			this._data = data;
 
 			this.ignoreInfo = ignore;
-			this.reuseIndexes = reuse;
+			this.reuseIndices = reuse;
 		}
 
 		this(const Queue queue)
 		{
-			this(queue, queue.ignoreInfo, queue.reuseIndexes);
+			this(queue, queue.ignoreInfo, queue.reuseIndices);
 		}
 
 		this(const Queue queue, const bool ignore=false, const bool reuse=true)
@@ -161,11 +161,25 @@ class Queue(T)
 			return;
 		}
 
-		// Generates a copy of the internal contents.
+		// This generates a copy of the internal contents.
 		// Basically, this is 'area', only it copies instead.
-		T[] toArray() // const
+		T[] toArray() const
 		{
-			return area.dup();
+			auto output = new T[length];
+
+			const auto low = this.low;
+			const auto high = this.high;
+
+			for (size_t i = low; i < high; i++)
+			{
+				output[i-low] = _data[i];
+			}
+
+			// copy(...);
+
+			//return area.dup();
+
+			return output;
 		}
 
 		bool compare(const Queue queue, const bool checkLengths=true) const
@@ -181,7 +195,7 @@ class Queue(T)
 			const auto high = this.high;
 			const auto low = this.low;
 
-			if (reuseIndexes && outPosition >= initSize && ((outPosition % initSize) == 0))
+			if (reuseIndices && outPosition >= initSize && ((outPosition % initSize) == 0))
 			{
 				for (size_t i = low; i < high; i++)
 				{
@@ -282,7 +296,7 @@ class Queue(T)
 
 		// If enabled, previously utilized indices will be reused.
 		// Causes occasional copy operations; use at your own risk.
-		bool reuseIndexes;
+		bool reuseIndices;
 	private:
 		// Fields (Private):
 		T[] _data;
