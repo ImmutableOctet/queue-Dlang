@@ -11,7 +11,6 @@ module queue;
 
 // Standard library:
 private import std.algorithm;
-import std.stdio;
 
 // Structures:
 struct Queue(T)
