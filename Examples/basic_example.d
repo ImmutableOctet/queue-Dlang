@@ -3,38 +3,36 @@ import queue;
 
 // Standard library:
 import std.stdio;
+import std.conv;
 
 // Functions:
 int main(string[] argv)
 {
-	auto x = Queue!int(64); // (1024*1024*128);
+	Queue!int.default_size = 16; // 64;
+
+	auto queue = Queue!int.init;
 
 	writeln("Running example...");
 
-	for (int i = 1; i <= 16; i++)
+	for (int x = 0; x <= 16; x++)
 	{
-		for (int test = i; test <= (i+20); test++)
+		queue.push(x);
+	}
+
+	while (!queue.empty)
+	{
+		const auto f = queue.front;
+		const auto element = queue.pop();
+
+		if (element == f)
 		{
-			x.push(test);
+			writeln(to!string(f) ~ " == " ~ to!string(element));
 		}
-
-		if ((i % 4) == 0)
+		else
 		{
-			while (!x.empty())
-			{
-				auto value = x.pop();
-				
-				writeln(value);
-				
-				/*
-				if ((value % 20) == 0)
-				{
-					writeln("------");
-				}
-				*/
-			}
+			writeln("Internal error.");
 
-			writeln();
+			break;
 		}
 	}
 
@@ -43,5 +41,5 @@ int main(string[] argv)
 	readln();
 	
 	// Return the default response.
-    return 0;
+	return 0;
 }

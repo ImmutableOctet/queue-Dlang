@@ -1,5 +1,8 @@
 /*
 	Very basic queue module for the D programming language.
+
+	TO DO:
+		* Optimize the deep-copy routines to account for unused space.
 */
 
 module queue;
@@ -7,15 +10,20 @@ module queue;
 // Imports:
 
 // Standard library:
-//import std.container;
 private import std.algorithm;
+import std.stdio;
 
 // Structures:
 struct Queue(T)
 {
 	public:
+		// Global variable(s):
+		static size_t default_size = 16;
+
 		// Functions:
-		static bool compareQueues(const Queue X, const Queue Y, const bool checkLengths=true)
+
+		// This specifies if the two 'Queue' objects are identical.
+		static bool compareQueues(in Queue X, in Queue Y, const bool checkLengths=true)
 		{
 			if (X == Y)
 			{
@@ -40,21 +48,42 @@ struct Queue(T)
 		}
 
 		// Constructor(s):
-		this(const bool ignore=false, const bool reuse=true)
+		@property @safe static Queue init() nothrow
 		{
-			this(16, ignore, reuse);
+			return Queue(false, true);
 		}
 
+		//@disable this();
+
+		/*
+			The 'ignore' argument (Represented by 'ignoreInfo') specifies
+			if "phantom" entries should be ignored, or cleared upon removal.
+			Unless you plan to clear this queue afterword, or you're
+			dealing with scope-allocated types, do not enable this.
+
+			The 'reuse' argument (Represented by 'reuseIndices') specifies
+			if previous segments of the internal buffer/array
+			should be reused before attempting a resize operation.
+		*/
+		this(const bool ignore=false, const bool reuse=true)
+		{
+			this(default_size, ignore, reuse);
+		}
+
+		// This will allocate a queue with the size specified;
+		// for details on the other arguments, please view the default implementation's documentation.
 		this(const size_t size, const bool ignore=false, const bool reuse=true)
 		{
 			this(new T[size], size, ignore, reuse);
 		}
 
+		// See the primary implementation for details; 'data' is used as the internal buffer.
 		this(T[] data, const bool ignore=false, const bool reuse=true)
 		{
 			this(data, data.length, ignore, reuse);
 		}
 
+		// This constructor uses the array specified, it does not duplicate it.
 		this(T[] data, const size_t size, const bool ignore=false, const bool reuse=true)
 		{
 			this.initSize = size;
@@ -64,12 +93,15 @@ struct Queue(T)
 			this.reuseIndices = reuse;
 		}
 
+		// This will assume all settings from the 'queue' argument.
+		// The internal array will be copied; deep copy operation.
 		this(in Queue queue)
 		{
 			this(queue, queue.ignoreInfo, queue.reuseIndices);
 		}
 
-		this(in Queue queue, const bool ignore=false, const bool reuse=true)
+		// All settings (Excluding the arguments) will be copied from 'queue'.
+		this(in Queue queue, const bool ignore, const bool reuse=true)
 		{
 			this(queue._data.dup(), queue.initSize, ignore, reuse);
 
@@ -77,7 +109,27 @@ struct Queue(T)
 			outPosition = queue.outPosition;
 		}
 
+		// Automated copy constructor.
+		/*
+		this(this)
+		{
+			// Make a duplicate of the internal buffer.
+			_data = _data.dup();
+		}
+		*/
+
 		// Destructor(s):
+
+		/*
+			This will reset a queue to an empty state, clearing
+			and/or remaking the internal array if needed/requested.
+
+			The 'flush' argument will ensure that every element
+			of the internal array is default-initialized.
+
+			The 'remake' argument will recreate the internal array completely.
+			This will use the size this queue was created with.
+		*/
 		void clear(const bool flush=true, bool remake=false)
 		{
 			if (remake)
@@ -103,7 +155,7 @@ struct Queue(T)
 
 		// Methods:
 
-		// Performs a deep-copy of this queue.
+		// Performs a deep-copy of this queue, generating a new object.
 		Queue save() const
 		{
 			return Queue(this);
@@ -188,19 +240,19 @@ struct Queue(T)
 				output[i-low] = _data[i];
 			}
 
-			// copy(...);
+			//copy(...);
 
 			//return area.dup();
 
 			return output;
 		}
 
-		bool compare(const Queue queue, const bool checkLengths=true) const
+		bool compare(in Queue queue, const bool checkLengths=true) const
 		{
 			return compareQueues(this, queue, checkLengths);
 		}
 
-		void push(T value) // void put(...)
+		void push(in T value) // void put(...)
 		{
 			// Local variable(s):
 
@@ -260,14 +312,16 @@ struct Queue(T)
 			return value;
 		}
 
-		// Used for standard 'foreach' compliance.
-		alias popfront = pop;
-
 		// Properties (Public):
 		
-		// The current "area" of the internal array.
-		// This only slices the internal array,
-		// to generate a new array, call 'toArray'.
+		/*
+			The current "area" of the internal array.
+			
+			This only slices the internal array,
+			to generate a new array, call 'toArray'.
+
+			Use this at your own risk.
+		*/
 		@property T[] area() // const
 		{
 			/*
@@ -280,13 +334,20 @@ struct Queue(T)
 			return _data[low..high];
 		}
 
+		// The entry 'pop' will return next.
 		@property T front() const
 		{
+			if (empty)
+				return T();
+
 			return _data[outPosition];
 		}
 
 		@property T back() const
 		{
+			if (empty)
+				return T();
+			
 			return _data[inPosition-1];
 		}
 
@@ -299,6 +360,16 @@ struct Queue(T)
 		{
 			return (high-low);
 		}
+
+		// API aliases:
+
+		// Used for standard 'foreach' compliance.
+		alias popfront = pop;
+
+		// An alias used to represent the active
+		// portion of the internal buffer/array.
+		// For details, please view 'area'.
+		alias data = area;
 
 		// Fields (Public):
 
@@ -326,10 +397,14 @@ struct Queue(T)
 		}
 	private:
 		// Fields (Private):
+
+		// An array representing the internal elements of the queue.
 		T[] _data;
 
+		// The input and output positions of the queue:
 		size_t inPosition;
 		size_t outPosition;
 		
-		const size_t initSize;
+		// The initial size of the internal buffer; used for internal purposes.
+		size_t initSize;
 };
